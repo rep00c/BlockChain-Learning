@@ -69,7 +69,7 @@ func prepare(s []byte) [][]byte {
 
 An electronic coin is a chain of digital signatures. 每次交易时，拥有者用自己的私钥对上次交易的信息和下一位拥有者的公钥进行签名。因此可以用拥有者的公钥对此次交易进行验证。
 
-每个区块包含若干个交易，使用Merkel Tree将区块中的交易进行哈希，获取最终的Merkle root值，这样做既能节省空间，又能快速索引每一笔交易。
+每个区块包含若干个交易，使用Merkle Tree将区块中的交易进行哈希，获取最终的Merkle root值，这样做既能节省空间，又能快速索引每一笔交易。
 
 区块头包含Merkle root，时间戳，前一个区块的哈希值，当前难度(target)等等。区块头中还有个nonce字段，定义为uint32，随意取值，只要它使得对区块头计算出hash值小于难度target，就是一个能被承认的区块。
 
@@ -79,3 +79,31 @@ An electronic coin is a chain of digital signatures. 每次交易时，拥有者
 
 一方面矿工为了利润最大化，一定会优先选择手续费高的交易，另一方面，每个区块有最大size限制，低手续费或无手续费的交易可能无法被矿工打包计算。
 
+## Ethereum
+
+### 地址生成
+
+先生成随机私钥，在计算出对应公钥及地址
+
+keccak库似乎有内存泄漏的问题
+
+```javascript
+'use strict'
+
+const randomBytes = require('randombytes')
+const secp256k1 = require('secp256k1')
+const keccak = require('keccak')
+
+const createRandomPrivateKey = function () {
+    return randomBytes(32)
+}
+
+const privateKeyToAddress = function (privateKey) {
+    return keccak('keccak256').update(Buffer.from(secp256k1.publicKeyCreate(privateKey, false).slice(1))).digest().slice(-20)
+}
+
+let privateKey = createRandomPrivateKey()
+let address = privateKeyToAddress(privateKey)
+console.log('0x'+address.toString('hex'))
+console.log(privateKey.toString('hex'))
+```

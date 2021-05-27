@@ -83,6 +83,8 @@ An electronic coin is a chain of digital signatures. 每次交易时，拥有者
 
 ### 地址生成
 
+参考[https://ethbook.abyteahead.com/index.html](https://ethbook.abyteahead.com/index.html) 和《智能合约安全分析和审计指南》
+
 先生成随机私钥，在计算出对应公钥及地址
 
 keccak库似乎有内存泄漏的问题
@@ -106,4 +108,78 @@ let privateKey = createRandomPrivateKey()
 let address = privateKeyToAddress(privateKey)
 console.log('0x'+address.toString('hex'))
 console.log(privateKey.toString('hex'))
+```
+
+### geth
+
+具有账户管理、网络、合约等功能。
+
+#### create private network
+
+创建目录结构
+
+```
+ether-test/
+├── db
+└── gensis.json
+```
+
+配置gensis.json
+
+`chainId`是私链的网络地址，不同的链无法互联通讯。`homesteadBlock`表示是否使用homesteadBlock版本的eth协议。
+`eip150Block`,`eip155Block`和`eip158Block`是两个以太坊分叉提议，表示是否需要支持其相应标准。
+
+```json
+{
+  "config": {
+    "chainId": 987,
+    "homesteadBlock": 0,
+    "eip150Block": 0,
+    "eip155Block": 0,
+    "eip158Block": 0
+  },
+  "difficulty": "0x400",
+  "gasLimit": "0xffffffff",
+  "alloc": {}
+}
+```
+
+配置gensis.json是为了创世块的产生：
+
+```shell
+geth --datadir "./db" init gensis.json
+```
+
+一些启动参数：
+- `--rpc` `--rpcaddr` `rpcport`  是否开启JSON-RPC调用调试功能及地址端口
+- `--nodiscover`  避免别人加入
+- `--port`  监听结点之间P2P消息的端口，默认是30303
+- `--mine -–etherbase`  是否挖矿，相当于console执行`miner.start()`。后面一个参数是挖矿接收奖励地址
+
+```shell
+geth --datadir "./db" --nodiscover console
+```
+
+在console中有一些内置对象，可以进行如下操作：
+
+```shell
+# personal 账号管理相关
+personal.newAccount('123')  # 生成账号
+
+# eth 区块链操作相关
+eth.accounts()  # 返回账号数组
+eth.getBalance(eth.coinbase)  # 余额
+
+# miner
+miner.start()  # 开始挖矿
+miner.stop()  # 停止挖矿
+
+# web3 包含上面的对象，还有一些单位换算的方法
+web3.fromWei(1, "ether")  # 10 ^18 wei = 1 Ether
+```
+
+如果没有把输出流放到文件，执行`miner.start()`之后，会有源源不断的输出，无法继续调试输入命令了。
+可以再开一个终端调用命名管道attach上去，再`miner.stop()`即可。在windows中的命令为：
+```shell
+geth attach ipc://./pipe/geth.ipc
 ```

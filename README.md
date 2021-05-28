@@ -59,7 +59,7 @@ func prepare(s []byte) [][]byte {
 
 ## Merkle Tree
 
-原理挺简单的。将n条数据的哈希值(例如使用上面的SHA256)作为叶子结点，两两组合并再次计算哈希值并将该值作为这两个结点的父结点，如此往复，直到计算根节点。
+原理挺简单的。将n条数据的哈希值(例如使用上面的SHA256)作为叶子节点，两两组合并再次计算哈希值并将该值作为这两个节点的父节点，如此往复，直到计算根节点。
 
 在p2p文件传输完整性校验的应用中比较好理解。校验时，同样计算出获取到的n条数据的Merkle Tree。首先比较根节点，根节点包含所有数据的缩略信息，因此可以判断出整体是否发生错误。若根节点值不一致，再比较左子树和右子树，如此往复。最终能定位到是哪一段数据的问题，做到在log(n)的复杂度下对n条数据进行完整性校验。
 
@@ -153,7 +153,7 @@ geth --datadir "./db" init gensis.json
 一些启动参数：
 - `--rpc` `--rpcaddr` `rpcport`  是否开启JSON-RPC调用调试功能及地址端口
 - `--nodiscover`  避免别人加入
-- `--port`  监听结点之间P2P消息的端口，默认是30303
+- `--port`  监听节点之间P2P消息的端口，默认是30303
 - `--mine -–etherbase`  是否挖矿，相当于console执行`miner.start()`。后面一个参数是挖矿接收奖励地址
 
 ```shell
@@ -165,21 +165,32 @@ geth --datadir "./db" --nodiscover console
 ```shell
 # personal 账号管理相关
 personal.newAccount('123')  # 生成账号
+personal.unlockAccount(eth.accounts[0], '123', 300)  # 解锁账号，第三个参数是解锁时间
+
 
 # eth 区块链操作相关
 eth.accounts()  # 返回账号数组
 eth.getBalance(eth.coinbase)  # 余额
+eth.getBlock(1)  # 查询区块信息
+
+eth.sendTransaction({from:eth.accounts[0], to:eth.accounts[1], value:web3.toWei(10, 'ether')})  # 进行交易
+
 
 # miner
 miner.start()  # 开始挖矿
 miner.stop()  # 停止挖矿
 
+# txtool  查看交易池相关状态
+txtool.status()  # 
+
 # web3 包含上面的对象，还有一些单位换算的方法
 web3.fromWei(1, "ether")  # 10 ^18 wei = 1 Ether
 ```
 
-如果没有把输出流放到文件，执行`miner.start()`之后，会有源源不断的输出，无法继续调试输入命令了。
-可以再开一个终端调用命名管道attach上去，再`miner.stop()`即可。在windows中的命令为：
+如果没有把输出流放到文件，执行`miner.start()`之后，会有源源不断的输出，无法继续调试输入命令。
+或者运行节点时，没有使用console，
+可以用命名管道attach上去再继续调试。在windows中的命令为：
+
 ```shell
 geth attach ipc://./pipe/geth.ipc
 ```

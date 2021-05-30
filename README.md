@@ -144,7 +144,7 @@ ether-test/
 }
 ```
 
-配置gensis.json是为了创世块的产生：
+配置gensis.json(上面这个配置文件不兼容较新的硬分叉，比如19年的更新新增了一些EVM指令，后面编译合约的时候要选择旧些的版本)是为了创世块的产生：
 
 ```shell
 geth --datadir "./db" init gensis.json
@@ -194,3 +194,23 @@ web3.fromWei(1, "ether")  # 10 ^18 wei = 1 Ether
 ```shell
 geth attach ipc://./pipe/geth.ipc
 ```
+
+### contract
+
+一个简单的例子
+
+```solidity
+pragma solidity ^0.4.24;
+contract test1 {
+    uint vaultData;
+    function set(uint data) public{
+        vaultData = data;
+    }
+
+    function get() public view returns (uint) {
+        return vaultData;
+    }
+}
+```
+
+在[https://remix.ethereum.org](https://remix.ethereum.org)中连接到本地私链并部署合约

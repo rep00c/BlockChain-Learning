@@ -222,4 +222,4 @@ contract test1 {
 
 ### Ethernaut WP
 
-[https://github.com/WgagaXnunigo/BlockChain-Learning/blob/main/ethernaut.md](https://github.com/WgagaXnunigo/BlockChain-Learning/blob/main/ethernaut.md)
+[https://github.com/Dig2/BlockChain-Learning/blob/main/ethernaut.md](https://github.com/Dig2/BlockChain-Learning/blob/main/ethernaut.md)

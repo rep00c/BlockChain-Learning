@@ -218,10 +218,8 @@ contract test1 {
 
 部署合约和执行调用set方法，由于要修改合约数据，都需要消耗gas，即在有挖矿的情况下被打包执行。而get是只读操作，故能直接返回。
 
-### solidity
-
 ## Security
 
 ### Ethernaut WP
 
-
+[https://github.com/WgagaXnunigo/BlockChain-Learning/blob/main/ethernaut.md](https://github.com/WgagaXnunigo/BlockChain-Learning/blob/main/ethernaut.md)

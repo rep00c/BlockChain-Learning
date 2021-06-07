@@ -304,3 +304,28 @@ function goTo(uint _floor) public {
 6. 数组类型，index slot中存储了数组长度，`sha3(index)`为数组第一个元素值，`sha3(1 + sha3(index))`为第n+1个元素的值
 
 
+## GateKeeper One
+
+两个难点
+
+难点在于过：
+
+```solidity
+modifier gateTwo() {
+  require(gasleft().mod(8191) == 0);
+  _;
+}
+```
+
+即执行这条语句时，gas剩余量刚好能整除8191。解决方法为用remix进行调试，先随便测试一个gas值，看看进行模运算的时候，栈中的数值是多少，然后进行调整即可。
+
+调试时各opcode指令作用及gas小号可参考下面三个链接([yellow paper](https://ethereum.github.io/yellowpaper/paper.pdf) 过于不讲人话)
+
+https://ethervm.io/
+
+https://github.com/djrtwo/evm-opcode-gas-costs/blob/master/opcode-gas-costs_EIP-150_revision-1e18248_2017-04-12.csv
+
+https://github.com/crytic/evm-opcodes
+
+## GateKeeper Two
+

@@ -306,8 +306,6 @@ function goTo(uint _floor) public {
 
 ## GateKeeper One
 
-两个难点
-
 难点在于过：
 
 ```solidity
@@ -329,3 +327,48 @@ https://github.com/crytic/evm-opcodes
 
 ## GateKeeper Two
 
+难点在于过：
+
+```solidity
+modifier gateTwo() {
+  uint x;
+  assembly { x := extcodesize(caller) }
+  require(x == 0);
+  _;
+}
+```
+
+在constructor函数中执行初始代码时，该合约地址的`extcodesize()`值为0，因此把payload放在constructor中即可
+
+## Naught Coin
+
+该challenge实现了一个ERC20协议的代币。根据源码：
+
+```solidity
+https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/ERC20.sol
+```
+
+challenge中的代码只重载了transfer函数，将其加上了等待十年的modifier。
+
+但没有重载transferFrom函数，原来的还能使用。
+
+标准中，之所以有了transfer函数还要设置一个transferFrom函数，是为了方便使用合约进行交易。transfer中，代币发送者是`msg.sender`
+
+transferFrom中，比transfer多一个验证：
+
+```solidity
+uint256 currentAllowance = _allowances[sender][_msgSender()];
+require(currentAllowance >= amount, "ERC20: transfer amount exceeds allowance");
+unchecked {
+  _approve(sender, _msgSender(), currentAllowance - amount);
+}
+```
+
+故要先设置`_allowances`的值，`_allowances[addr1][addr2]`的值表示addr1用户允许addr2用户转出代币的量
+
+故此题解法：
+
+```javascript
+await contract.approve(player, await contract.balanceOf(player))
+await contract.transferFrom(player, contract.address, await contract.allowance(player, player))
+```

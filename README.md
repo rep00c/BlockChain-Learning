@@ -81,7 +81,7 @@ An electronic coin is a chain of digital signatures. 每次交易时，拥有者
 
 ## Ethereum
 
-### 地址生成
+### Address
 
 参考[https://ethbook.abyteahead.com/index.html](https://ethbook.abyteahead.com/index.html) 和《智能合约安全分析和审计指南》
 
@@ -110,90 +110,21 @@ console.log('0x'+address.toString('hex'))
 console.log(privateKey.toString('hex'))
 ```
 
-### geth
+### Sign and Transcation
 
-具有账户管理、网络、合约等功能。
+对字符串签名或对交易签名
 
-#### create private network
+首次进入OpenSea, rss3等网站会要求对一段数据进行签名，签名的作用是验证你确实拥有该私钥。签名时会在签名的数据加上前缀`\x19Ethereum Signed Message`以防止签名被用作其他用途。
 
-创建目录结构
+交易可以改变或更新以太坊状态。签名交易时，对如下数据的RLP编码进行签名
 
-```
-ether-test/
-├── db
-└── gensis.json
-```
-
-配置gensis.json
-
-`chainId`是私链的网络地址，不同的链无法互联通讯。`homesteadBlock`表示是否使用homesteadBlock版本的eth协议。
-`eip150Block`,`eip155Block`和`eip158Block`是两个以太坊分叉提议，表示是否需要支持其相应标准。
-
-```json
-{
-  "config": {
-    "chainId": 987,
-    "homesteadBlock": 0,
-    "eip150Block": 0,
-    "eip155Block": 0,
-    "eip158Block": 0
-  },
-  "difficulty": "0x400",
-  "gasLimit": "0xffffffff",
-  "alloc": {}
-}
-```
-
-配置gensis.json(上面这个配置文件不兼容较新的硬分叉，比如19年的更新新增了一些EVM指令，后面编译合约的时候要选择旧些的版本)是为了创世块的产生：
-
-```shell
-geth --datadir "./db" init gensis.json
-```
-
-一些启动参数：
-- `--rpc` `--rpcaddr` `rpcport`  是否开启JSON-RPC调用调试功能及地址端口
-- `--nodiscover`  避免别人加入
-- `--port`  监听节点之间P2P消息的端口，默认是30303
-- `--mine -–etherbase`  是否挖矿，相当于console执行`miner.start()`。后面一个参数是挖矿接收奖励地址
-
-```shell
-geth --datadir "./db" --nodiscover console
-```
-
-在console中有一些内置对象，可以进行如下操作：
-
-```shell
-# personal 账号管理相关
-personal.newAccount('123')  # 生成账号
-personal.unlockAccount(eth.accounts[0], '123', 300)  # 解锁账号，第三个参数是解锁时间
-
-
-# eth 区块链操作相关
-eth.accounts()  # 返回账号数组
-eth.getBalance(eth.coinbase)  # 余额
-eth.getBlock(1)  # 查询区块信息
-
-eth.sendTransaction({from:eth.accounts[0], to:eth.accounts[1], value:web3.toWei(10, 'ether')})  # 进行交易
-
-
-# miner
-miner.start()  # 开始挖矿
-miner.stop()  # 停止挖矿
-
-# txtool  查看交易池相关状态
-txtool.status()  # 
-
-# web3 包含上面的对象，还有一些单位换算的方法
-web3.fromWei(1, "ether")  # 10 ^18 wei = 1 Ether
-```
-
-如果没有把输出流放到文件，执行`miner.start()`之后，会有源源不断的输出，无法继续调试输入命令。
-或者运行节点时，没有使用console，
-可以用命名管道attach上去再继续调试。在windows中的命令为：
-
-```shell
-geth attach ipc://./pipe/geth.ipc
-```
+- Nonce
+- Gas price
+- Gas Limit
+- Target Address
+- Value
+- Data
+- v, r, s(ECDSA)
 
 ### contract
 

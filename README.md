@@ -87,8 +87,6 @@ An electronic coin is a chain of digital signatures. 每次交易时，拥有者
 
 先生成随机私钥，在计算出对应公钥及地址
 
-keccak库似乎有内存泄漏的问题
-
 ```javascript
 'use strict'
 
@@ -126,31 +124,10 @@ console.log(privateKey.toString('hex'))
 - Data
 - v, r, s(ECDSA)
 
-### contract
+## 本地开发环境搭建
 
-一个简单的例子
+[https://github.com/Dig2/BlockChain-Learning/blob/main/truffle.md](https://github.com/Dig2/BlockChain-Learning/blob/main/truffle.md)
 
-```solidity
-pragma solidity ^0.4.24;
-contract test1 {
-    uint vaultData;
-    
-    function set(uint data) public{
-        vaultData = data;
-    }
-
-    function get() public view returns (uint) {
-        return vaultData;
-    }
-}
-```
-
-在[https://remix.ethereum.org](https://remix.ethereum.org)中连接到本地私链并部署合约
-
-部署合约和执行调用set方法，由于要修改合约数据，都需要消耗gas，即在有挖矿的情况下被打包执行。而get是只读操作，故能直接返回。
-
-## Security
-
-### Ethernaut WP
+## Ethernaut
 
 [https://github.com/Dig2/BlockChain-Learning/blob/main/ethernaut.md](https://github.com/Dig2/BlockChain-Learning/blob/main/ethernaut.md)

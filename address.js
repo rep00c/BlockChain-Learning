@@ -12,7 +12,16 @@ const privateKeyToAddress = function (privateKey) {
     return keccak('keccak256').update(Buffer.from(secp256k1.publicKeyCreate(privateKey, false).slice(1))).digest().slice(-20)
 }
 
-let privateKey = createRandomPrivateKey()
-let address = privateKeyToAddress(privateKey)
-console.log('0x'+address.toString('hex'))
-console.log(privateKey.toString('hex'))
+const num = 10
+const pri_arr = []
+const pub_arr = []
+
+for (let i = 0; i < num; i++) {
+    const privateKey = createRandomPrivateKey()
+    const address = privateKeyToAddress(privateKey)
+
+    pub_arr.push('0x'+address.toString('hex'))
+    pri_arr.push(privateKey.toString('hex'))
+}
+
+console.log(pub_arr, pri_arr)
